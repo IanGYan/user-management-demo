@@ -1,0 +1,3 @@
+# Exception: Always track .env.example files
+!.env.example
+!**/.env.example
