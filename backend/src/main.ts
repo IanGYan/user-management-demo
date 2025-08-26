@@ -2,6 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import {
+  HttpExceptionFilter,
+  ValidationExceptionFilter,
+} from './common/filters';
+import { ResponseInterceptor, LoggingInterceptor } from './common/interceptors';
 
 /**
  * Bootstrap the NestJS application
@@ -23,6 +28,18 @@ async function bootstrap(): Promise<void> {
       forbidNonWhitelisted: true,
       transform: true,
     }),
+  );
+
+  // Setup global exception filters
+  app.useGlobalFilters(
+    new HttpExceptionFilter(),
+    new ValidationExceptionFilter(),
+  );
+
+  // Setup global interceptors
+  app.useGlobalInterceptors(
+    new LoggingInterceptor(),
+    new ResponseInterceptor(),
   );
 
   // Enable CORS
