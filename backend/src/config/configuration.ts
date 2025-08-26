@@ -2,11 +2,15 @@
  * Application configuration interface
  */
 export interface DatabaseConfig {
+  url?: string;
   host: string;
   port: number;
   username: string;
   password: string;
   database: string;
+  synchronize: boolean;
+  logging: boolean;
+  migrationsRun: boolean;
 }
 
 export interface JwtConfig {
@@ -46,11 +50,15 @@ export default (): AppConfig => ({
   port: parseInt(process.env.PORT || '3001', 10),
   apiPrefix: process.env.API_PREFIX || 'api',
   database: {
+    url: process.env.DATABASE_URL,
     host: process.env.DATABASE_HOST || 'localhost',
     port: parseInt(process.env.DATABASE_PORT || '5432', 10),
     username: process.env.DATABASE_USERNAME || 'postgres',
     password: process.env.DATABASE_PASSWORD || 'postgres',
     database: process.env.DATABASE_NAME || 'user_management_dev',
+    synchronize: process.env.TYPEORM_SYNCHRONIZE === 'true',
+    logging: process.env.TYPEORM_LOGGING === 'true',
+    migrationsRun: process.env.TYPEORM_MIGRATIONS_RUN === 'true',
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'default-secret-key',

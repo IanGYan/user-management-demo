@@ -8,14 +8,14 @@ import { AppModule } from './app.module';
  */
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
-  
+
   // Get configuration service
   const configService = app.get(ConfigService);
-  
+
   // Set global API prefix
   const apiPrefix = configService.get<string>('apiPrefix', 'api');
   app.setGlobalPrefix(apiPrefix);
-  
+
   // Enable global validation
   app.useGlobalPipes(
     new ValidationPipe({
@@ -24,19 +24,21 @@ async function bootstrap(): Promise<void> {
       transform: true,
     }),
   );
-  
+
   // Enable CORS
   app.enableCors({
     origin: process.env.NODE_ENV === 'production' ? false : true,
     credentials: true,
   });
-  
+
   // Get port from configuration
   const port = configService.get<number>('port', 3001);
-  
+
   await app.listen(port);
-  
-  console.log(`🚀 Application is running on: http://localhost:${port}/${apiPrefix}`);
+
+  console.log(
+    `🚀 Application is running on: http://localhost:${port}/${apiPrefix}`,
+  );
 }
 
 bootstrap().catch((error) => {

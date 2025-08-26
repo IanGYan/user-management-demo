@@ -72,11 +72,7 @@ PORT=3001
 API_PREFIX=api
 
 # 数据库配置
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=postgres
-DATABASE_NAME=user_management_dev
+DATABASE_URL="postgresql://user:password@localhost:5432/user_management?schema=public"
 
 # JWT配置
 JWT_SECRET=your-super-secret-jwt-key

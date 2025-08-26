@@ -80,6 +80,10 @@ pnpm-lock.yaml
 .env.test.local
 .env.production.local
 
+# Exception: Always track .env.example files
+!.env.example
+!**/.env.example
+
 # Next.js build output
 .next/
 out/
@@ -129,6 +133,7 @@ test-results/
 
 # Backend specific (NestJS)
 backend/.env*
+!backend/.env.example
 backend/dist/
 backend/build/
 backend/uploads/
