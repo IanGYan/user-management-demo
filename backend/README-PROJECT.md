@@ -53,38 +53,38 @@ src/
 
 1. **克隆仓库并安装依赖**
 
-```bash
-npm install
-```
+    ```bash
+    npm install
+    ```
 
 2. **创建环境变量文件**
 
-```bash
-cp .env.example .env
-```
+    ```bash
+    cp .env.example .env
+    ```
 
 3. **配置环境变量** (编辑 `.env` 文件)
 
-```env
-# 应用配置
-NODE_ENV=development
-PORT=3001
-API_PREFIX=api
+    ```env
+    # 应用配置
+    NODE_ENV=development
+    PORT=3001
+    API_PREFIX=api
 
-# 数据库配置
-DATABASE_URL="postgresql://user:password@localhost:5432/user_management?schema=public"
+    # 数据库配置
+    DATABASE_URL="postgresql://user:password@localhost:5432/user_management?schema=public"
 
-# JWT配置
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=30m
-JWT_REFRESH_SECRET=your-super-secret-refresh-key
-JWT_REFRESH_EXPIRES_IN=7d
+    # JWT配置
+    JWT_SECRET=your-super-secret-jwt-key
+    JWT_EXPIRES_IN=30m
+    JWT_REFRESH_SECRET=your-super-secret-refresh-key
+    JWT_REFRESH_EXPIRES_IN=7d
 
-# 邮件配置
-EMAIL_HOST=localhost
-EMAIL_PORT=1025
-EMAIL_FROM=noreply@userapp.com
-```
+    # 邮件配置
+    EMAIL_HOST=localhost
+    EMAIL_PORT=1025
+    EMAIL_FROM=noreply@userapp.com
+    ```
 
 ### Docker 开发环境
 
