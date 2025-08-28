@@ -86,12 +86,12 @@
 
 #### (S1-02-003) 工具库和配置
 
-- [ ] (SN: 040) 实现 API 请求工具 (lib/api.ts)
-- [ ] (SN: 041) 配置表单验证库 (Zod)
-- [ ] (SN: 042) 集成 React Hook Form
-- [ ] (SN: 043) 实现客户端认证工具 (lib/auth.ts)
-- [ ] (SN: 044) 设置状态管理 (Zustand 或 Context API)
-- [ ] (SN: 045) 配置环境变量
+- [x] (SN: 040) 实现 API 请求工具 (lib/api.ts)
+- [x] (SN: 041) 配置表单验证库 (Zod)
+- [x] (SN: 042) 集成 React Hook Form
+- [x] (SN: 043) 实现客户端认证工具 (lib/auth.ts)
+- [x] (SN: 044) 设置状态管理 (Zustand 或 Context API)
+- [x] (SN: 045) 配置环境变量
 
 ### 📱 (S1-03) 基础页面开发
 
@@ -617,259 +617,80 @@
 
 ## 📈 Sprint 1 进度报告
 
-### 🎉 已完成任务 (截至 2025 年 8 月 28 日)
-
-#### (S1-01-001) 项目初始化 - ✅ 100% 完成
-
-- ✅ **SN-001**: 创建 NestJS 项目
-- ✅ **SN-002**: 配置 TypeScript 和 ESLint
-- ✅ **SN-003**: 设置项目目录结构
-- ✅ **SN-004**: 配置环境变量管理 (@nestjs/config)
-- ✅ **SN-005**: 设置 Docker 开发环境配置
-
-#### (S1-01-002) 数据库配置 - ✅ 100% 完成
-
-- ✅ **SN-006**: 安装和配置 PostgreSQL
-- ✅ **SN-007**: 配置 TypeORM 连接
-- ✅ **SN-008**: 创建数据库连接模块
-- ✅ **SN-009**: 设置数据库迁移配置
-- ✅ **SN-010**: 创建用户实体 (User Entity)
-- ✅ **SN-011**: 创建刷新令牌实体 (RefreshToken Entity)
-- ✅ **SN-012**: 生成初始数据库迁移文件
-
-#### (S1-01-003) 核心模块开发 - ✅ 100% 完成
-
-- ✅ **SN-013**: 创建 Auth 模块骨架
-- ✅ **SN-014**: 创建 User 模块骨架
-- ✅ **SN-015**: 实现基础的数据传输对象 (DTOs)
-- ✅ **SN-016**: 配置全局异常过滤器
-- ✅ **SN-017**: 实现全局响应拦截器
-- ✅ **SN-018**: 设置全局验证管道
-
-#### (S1-01-004) 安全基础设施 - ✅ 100% 完成
-
-- ✅ **SN-019**: 集成 bcrypt 密码加密
-- ✅ **SN-020**: 配置 JWT 模块
-- ✅ **SN-021**: 实现 JWT 策略
-- ✅ **SN-022**: 创建 JWT 认证守卫
-- ✅ **SN-023**: 设置 CORS 配置
-- ✅ **SN-024**: 配置限流中间件
-
-#### (S1-02-001) 前端项目初始化 - ✅ 100% 完成
-
-- ✅ **SN-025**: 创建 Next.js 项目 (App Router)
-- ✅ **SN-026**: 配置 TypeScript
-- ✅ **SN-027**: 集成 Tailwind CSS
-- ✅ **SN-028**: 设置项目目录结构
-- ✅ **SN-029**: 配置 ESLint 和 Prettier
-- ✅ **SN-030**: 安装必要的依赖包
-
-#### (S1-02-002) 基础组件开发 - ✅ 100% 完成
-
-- ✅ **SN-031**: 创建根布局组件 (layout.tsx)
-- ✅ **SN-032**: 开发基础 UI 组件库
-  - ✅ **SN-033**: Button 组件
-  - ✅ **SN-034**: Input 组件
-  - ✅ **SN-035**: Card 组件
-  - ✅ **SN-036**: Loading 组件
-  - ✅ **SN-037**: Toast 通知组件
-- ✅ **SN-038**: 设置全局样式 (globals.css)
-- ✅ **SN-039**: 配置 Tailwind 主题
-
 ### 📊 总体进度统计
 
 - **Sprint 1 总任务**: 60 个任务
-- **已完成**: 39 个任务 (65%)
+- **已完成**: 45 个任务 (75%)
 - **进行中**: 0 个任务
-- **待完成**: 21 个任务 (35%)
+- **待完成**: 15 个任务 (25%)
 
-### 🏗️ 已建立的基础设施
+### 🏗️ 已完成的主要功能模块
 
-- ✅ NestJS 后端项目架构
-- ✅ TypeScript 严格模式配置
-- ✅ ESLint 代码质量规范
-- ✅ 模块化目录结构 (auth、user、email、common、config、database)
-- ✅ 环境变量管理系统
-- ✅ Docker 开发环境 (PostgreSQL + Redis + MailHog)
-- ✅ 全局验证管道和 CORS 配置
-- ✅ 基础模块骨架 (Auth、User、Email)
-- ✅ TypeORM 数据库连接和配置
-- ✅ 用户实体和刷新令牌实体
-- ✅ 数据库迁移系统
-- ✅ PostgreSQL 数据库表结构
-- ✅ 完整的数据传输对象 (DTOs) 体系
-- ✅ 全局异常过滤器和响应拦截器
-- ✅ bcrypt 密码加密服务
-- ✅ JWT 认证模块和策略
-- ✅ JWT 认证守卫和路由保护
-- ✅ API 限流中间件和防护
-- ✅ Next.js 前端项目架构 (App Router)
-- ✅ Tailwind CSS 设计系统配置
-- ✅ 前端 TypeScript 严格模式配置
-- ✅ ESLint + Prettier 代码质量规范
-- ✅ React Hook Form + Zod 表单验证
-- ✅ Zustand 状态管理配置
-- ✅ Axios API 请求工具和拦截器
-- ✅ 完整的前端项目目录结构
-- ✅ 基础 UI 组件库 (Button、Input、Card、Loading、Toast)
-- ✅ 响应式根布局组件
-- ✅ 完善的全局样式和动画
-- ✅ 自定义 Tailwind 主题配置
-- ✅ 组件展示页面和示例
+#### 后端基础设施 (S1-01) - ✅ 100% 完成
+- **数据库架构**: PostgreSQL + TypeORM + 完整实体模型
+- **认证安全**: JWT 双令牌 + bcrypt 加密 + 限流保护
+- **模块化架构**: Auth/User/Email 模块 + DTOs + 全局中间件
+- **Docker 环境**: PostgreSQL + Redis + MailHog 开发环境
 
-### 🎯 下一步工作
+#### 前端基础设施 (S1-02) - ✅ 100% 完成
+- **项目架构**: Next.js App Router + TypeScript 严格模式
+- **UI 组件库**: Button/Input/Card/Loading/Toast + 响应式设计
+- **状态管理**: Zustand 双 Store 架构 (认证 + UI)
+- **工具链**: ESLint 9.x + Prettier + Tailwind CSS + Zod 验证
+- **认证工具**: AuthManager 类 + useAuth/useUI Hooks
 
-**S1-01 后端基础设施**、**S1-02-001 前端项目初始化** 和 **S1-02-002 基础组件开发** 已全部完成！
+### 🔑 核心技术成果
 
-建议继续执行 **S1-02-003 工具库和配置** 任务:
+#### 1. 认证与安全
+- JWT 双令牌机制（访问令牌 30分钟 + 刷新令牌 7天）
+- bcrypt 12轮密码加密
+- API 限流与账户锁定机制
+- 完整的前端认证状态管理
 
-- 实现 API 请求工具 (lib/api.ts)
-- 配置表单验证库 (Zod)
-- 集成 React Hook Form
-- 实现客户端认证工具 (lib/auth.ts)
-- 设置状态管理 (Zustand 或 Context API)
-- 配置环境变量
+#### 2. 前端架构
+- TypeScript 严格模式兼容 (exactOptionalPropertyTypes)
+- Zustand 轻量级状态管理
+- React Hook Form + Zod 表单验证体系
+- 自动令牌刷新机制
 
-或者开始 **S1-04 测试基础设施** 任务:
+#### 3. 开发体验优化
+- ESLint 9.x 配置迁移完成
+- 完整的 TypeScript 类型安全
+- 前端编译构建成功（无错误）
+- 响应式 UI 组件库
 
-- 配置后端单元测试 (Jest)
-- 配置前端测试 (Jest + React Testing Library)
-- 创建测试工具和辅助函数
+### ⚠️ 后端 API 待实现提醒
 
-### 📋 最新完成详情
+前端认证功能已就绪，但以下后端 API 仍需实现：
+- `POST /auth/register` - 用户注册
+- `POST /auth/login` - 用户登录
+- `POST /auth/logout` - 用户登出
+- `GET /auth/verify-email` - 邮箱验证
+- `POST /auth/resend-verification` - 重发验证邮件
+- `POST /auth/forgot-password` - 忘记密码
+- `POST /auth/reset-password` - 重置密码
 
-#### S1-02-002 基础组件开发完成情况
+所有前端代码中已标记 TODO 注释，当前后端只有 `GET /auth/test` 测试端点。
 
-**技术实现亮点**:
+### 🎯 下一步建议
 
-1. **完整的 UI 组件库**: 包含 Button、Input、Card、Loading、Toast 等核心组件
-2. **TypeScript 类型安全**: 所有组件都有完整的类型定义和 Props 接口
-3. **响应式设计**: 组件支持不同屏幕尺寸和设备类型
-4. **可访问性支持**: 包含 ARIA 标签、键盘导航等无障碍功能
-5. **主题系统**: 支持明暗主题切换和自定义颜色变量
-6. **动画效果**: 内置淡入、滑入、缩放等动画效果
-7. **组件变体**: 使用 class-variance-authority 实现组件样式变体
+#### 优先选项 1: S1-03 基础页面开发
+- 创建首页和错误页面
+- 实现基础布局和导航
+- 设置路由结构
 
-**生成的核心文件**:
+#### 优先选项 2: S2-02 前端认证界面
+- 认证工具已就绪，可直接开发登录/注册页面
+- 利用现有 useAuth Hook 和 UI 组件
 
-- `frontend/src/components/ui/button.tsx` - 按钮组件 (支持 6 种变体、3 种尺寸、加载状态)
-- `frontend/src/components/ui/input.tsx` - 输入组件 (支持标签、错误提示、帮助文本)
-- `frontend/src/components/ui/card.tsx` - 卡片组件 (Header、Content、Footer 子组件)
-- `frontend/src/components/ui/loading.tsx` - 加载组件 (4 种尺寸、全屏覆盖、页面加载)
-- `frontend/src/components/ui/toast.tsx` - 通知组件 (4 种类型、自动关闭、Toast Hook)
-- `frontend/src/components/ui/index.ts` - 组件导出文件
-- `frontend/src/app/page.tsx` - 组件展示页面
-
-**样式系统完善**:
-
-- 自定义滚动条样式
-- 动画关键帧定义 (fadeIn、slideIn、slideUp、slideDown、scaleIn)
-- 实用样式类 (.center、.glass、.focus-visible)
-- 完整的 CSS 变量系统 (支持明暗主题)
-- 响应式断点和布局
-
-**组件特性**:
-
-- **Button**: 6 种变体、3 种尺寸、加载状态、图标支持
-- **Input**: 标签、错误状态、帮助文本、必填标记
-- **Card**: 模块化设计、标题、描述、内容区域
-- **Loading**: 4 种尺寸、文本提示、全屏覆盖
-- **Toast**: 4 种类型、自动关闭、手动关闭、Toast Hook
-
-#### S1-02-001 前端项目初始化完成情况
-
-**技术实现亮点**:
-
-1. **Next.js App Router**: 使用最新的 App Router 架构，支持嵌套布局和并行路由
-2. **TypeScript 严格模式**: 启用 noUnusedLocals、noUncheckedIndexedAccess 等严格检查
-3. **Tailwind CSS 设计系统**: 配置完整的 CSS 变量系统，支持明暗主题切换
-4. **代码质量保障**: ESLint + Prettier 自动格式化和错误检查
-5. **表单验证体系**: 基于 Zod 的类型安全验证，符合密码复杂度要求
-6. **API 请求工具**: 自动令牌刷新、错误处理的 Axios 配置
-7. **状态管理就绪**: Zustand 轻量级状态管理配置
-
-**生成的核心文件**:
-
-- `frontend/src/lib/utils.ts` - 通用工具函数
-- `frontend/src/lib/validations.ts` - 表单验证规则
-- `frontend/src/lib/api.ts` - API 请求工具
-- `frontend/src/types/index.ts` - TypeScript 类型定义
-- `frontend/tailwind.config.ts` - Tailwind 配置
-- `frontend/.eslintrc.js` - ESLint 配置
-- `frontend/.prettierrc` - Prettier 配置
-
-**项目结构完整性**:
-
-- 符合需求文档规定的前端架构
-- 完整的目录结构 (components/ui、lib、hooks、stores、types)
-- 开发脚本和工具链配置完整
-- TypeScript 类型检查通过
-
-#### S1-01-002 数据库配置完成情况
-
-**技术实现亮点**:
-
-1. **配置灵活性**: 支持 `DATABASE_URL` 和独立参数两种数据库连接方式
-2. **类型安全**: 使用 TypeScript 严格模式，所有实体字段都有明确的类型定义
-3. **生产就绪**: 包含 SSL 配置、迁移管理等生产环境考虑
-4. **关系完整**: 正确配置了实体间的关系和外键约束
-5. **代码质量**: 通过了 ESLint 检查和 Prettier 格式化
-
-**生成的核心文件**:
-
-- `src/database/database.module.ts` - 数据库连接模块
-- `src/database/typeorm.config.ts` - TypeORM 迁移配置
-- `src/user/entities/user.entity.ts` - 用户实体（包含完整的安全字段）
-- `src/auth/entities/refresh-token.entity.ts` - 刷新令牌实体
-- `src/database/migrations/1756198668357-InitialMigration.ts` - 初始迁移文件
-
-**数据库结构已创建**:
-
-- `users` 表：包含用户认证、验证、安全锁定等完整功能字段
-- `refresh_tokens` 表：JWT 刷新令牌管理
-- 外键约束和级联删除已正确配置
-
-#### S1-01-003 核心模块开发完成情况
-
-**技术实现亮点**:
-
-1. **完整的 DTOs 体系**: 涵盖认证、用户管理、密码重置等核心功能
-2. **类型安全**: 所有 DTOs 使用 class-validator 进行严格验证
-3. **国际化错误**: 友好的中文错误提示信息
-4. **标准化响应**: 统一的 API 响应格式和错误处理
-5. **代码质量**: 通过了所有 TypeScript 和 ESLint 检查
-
-**生成的核心文件**:
-
-- `src/auth/dto/` - 认证相关 DTOs (注册、登录、刷新令牌)
-- `src/user/dto/` - 用户管理 DTOs (更新、密码重置、响应格式)
-- `src/common/filters/` - 全局异常过滤器
-- `src/common/interceptors/` - 全局响应拦截器
-- `src/common/types/` - 通用类型定义
-
-#### S1-01-004 安全基础设施完成情况
-
-**技术实现亮点**:
-
-1. **密码安全**: bcrypt 12 轮加密，安全强度高
-2. **JWT 双令牌**: 访问令牌(30 分钟) + 刷新令牌(7 天)机制
-3. **认证策略**: Passport 集成，支持多种认证模式
-4. **路由保护**: 灵活的守卫系统，支持必需和可选认证
-5. **限流防护**: 全局和认证特定的 API 限流保护
-6. **测试覆盖**: 密码加密服务 8 个测试用例全部通过
-
-**生成的核心文件**:
-
-- `src/common/services/crypto.service.ts` - 密码加密服务
-- `src/auth/services/jwt.service.ts` - JWT 令牌管理服务
-- `src/auth/strategies/jwt.strategy.ts` - JWT 认证策略
-- `src/auth/guards/` - JWT 认证守卫和限流守卫
-- `src/common/decorators/` - 认证装饰器 (@Public, @CurrentUser 等)
+#### 可选选项: S1-04 测试基础设施
+- 配置 Jest 单元测试
+- 建立测试工具和规范
 
 ---
 
-**文档版本**: 1.5  
+**文档版本**: 1.6  
 **创建日期**: 2025 年 8 月 25 日  
-**最后更新**: 2025 年 8 月 28 日 10:00  
+**最后更新**: 2025 年 8 月 28 日 16:00  
 **预计完成时间**: 8 周  
-**项目状态**: Sprint 1 进行中 - 后端基础设施、前端项目初始化和基础组件开发已完成 (65%)
+**项目状态**: Sprint 1 进行中 - 后端基础设施、前端项目初始化、基础组件开发和工具库配置已完成 (75%)

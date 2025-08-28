@@ -1,7 +1,8 @@
 ---
+trigger: model_decision
 description: Always follow these rules when generate backend codes.
-alwaysApply: false
 ---
+
 # Backend Rules
 
 You are a senior TypeScript programmer with experience in the NestJS framework and a preference for clean programming and design patterns.
