@@ -1,0 +1,268 @@
+# 状态检查工作流
+# 用于验证基础项目健康度的简化检查
+
+name: Status Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # 每周一上午9点运行健康检查
+    - cron: '0 9 * * 1'
+
+jobs:
+  # 快速健康检查
+  health-check:
+    name: 项目健康检查
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+
+    # 检查项目结构
+    - name: 验证项目结构
+      run: |
+        echo "检查项目结构..."
+        
+        # 必需的目录和文件
+        required_files=(
+          "backend/package.json"
+          "frontend/package.json"
+          "docker-compose.yml"
+          ".github/workflows"
+        )
+        
+        for file in "${required_files[@]}"; do
+          if [ ! -e "$file" ]; then
+            echo "❌ 缺少必需文件: $file"
+            exit 1
+          else
+            echo "✅ 找到: $file"
+          fi
+        done
+
+    # 检查依赖安装
+    - name: 验证依赖安装
+      run: |
+        echo "检查依赖安装..."
+        
+        cd backend
+        if npm ci --silent; then
+          echo "✅ 后端依赖安装成功"
+        else
+          echo "❌ 后端依赖安装失败"
+          exit 1
+        fi
+        
+        cd ../frontend
+        if npm ci --silent; then
+          echo "✅ 前端依赖安装成功"
+        else
+          echo "❌ 前端依赖安装失败"
+          exit 1
+        fi
+
+    # 快速语法检查
+    - name: 快速语法检查
+      run: |
+        echo "进行快速语法检查..."
+        
+        cd backend
+        if npm run lint:check > /dev/null 2>&1; then
+          echo "✅ 后端语法检查通过"
+        else
+          echo "⚠️ 后端存在语法问题"
+        fi
+        
+        cd ../frontend  
+        if npm run lint > /dev/null 2>&1; then
+          echo "✅ 前端语法检查通过"
+        else
+          echo "⚠️ 前端存在语法问题"
+        fi
+
+    # 构建测试
+    - name: 验证构建
+      run: |
+        echo "验证项目构建..."
+        
+        cd backend
+        if npm run build; then
+          echo "✅ 后端构建成功"
+        else
+          echo "❌ 后端构建失败"
+          exit 1
+        fi
+        
+        cd ../frontend
+        if npm run build; then
+          echo "✅ 前端构建成功"
+        else
+          echo "❌ 前端构建失败"
+          exit 1
+        fi
+
+  # Docker 构建检查
+  docker-health:
+    name: Docker 健康检查
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: 验证 Docker Compose
+      run: |
+        echo "验证 Docker Compose 配置..."
+        
+        # 检查 docker-compose 文件语法
+        if docker-compose config > /dev/null 2>&1; then
+          echo "✅ docker-compose.yml 语法正确"
+        else
+          echo "❌ docker-compose.yml 语法错误"
+          exit 1
+        fi
+        
+        if [ -f docker-compose.prod.yml ]; then
+          if docker-compose -f docker-compose.prod.yml config > /dev/null 2>&1; then
+            echo "✅ docker-compose.prod.yml 语法正确"
+          else
+            echo "❌ docker-compose.prod.yml 语法错误"
+            exit 1
+          fi
+        fi
+
+    - name: 测试 Docker 构建
+      run: |
+        echo "测试 Docker 镜像构建..."
+        
+        # 仅构建，不运行，以节省时间
+        if [ -f backend/Dockerfile ]; then
+          docker build --no-cache -t test-backend ./backend || echo "⚠️ 后端 Docker 构建可能存在问题"
+        fi
+        
+        if [ -f frontend/Dockerfile ]; then
+          docker build --no-cache -t test-frontend ./frontend || echo "⚠️ 前端 Docker 构建可能存在问题"
+        fi
+
+  # 安全基础检查
+  security-basics:
+    name: 基础安全检查
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 检查敏感文件
+      run: |
+        echo "检查敏感文件泄露..."
+        
+        # 检查是否意外提交了敏感文件
+        sensitive_patterns=(
+          "\.env$"
+          "\.env\.local$"
+          "\.env\.production$"
+          "id_rsa$"
+          "id_dsa$"
+          "\.pem$"
+          "\.key$"
+          "config\.json$"
+        )
+        
+        found_sensitive=false
+        for pattern in "${sensitive_patterns[@]}"; do
+          if find . -name "$pattern" -not -path "*/node_modules/*" | grep -q .; then
+            echo "⚠️ 发现可能的敏感文件: $pattern"
+            found_sensitive=true
+          fi
+        done
+        
+        if [ "$found_sensitive" = false ]; then
+          echo "✅ 未发现敏感文件泄露"
+        fi
+
+    - name: 检查默认凭据
+      run: |
+        echo "检查默认凭据..."
+        
+        # 检查常见的默认凭据模式
+        if grep -r "password.*123456\|password.*admin\|password.*password" . --exclude-dir=node_modules --exclude-dir=.git || true; then
+          echo "⚠️ 发现可能的弱凭据"
+        else
+          echo "✅ 未发现明显的弱凭据"
+        fi
+
+  # 生成状态报告
+  status-report:
+    name: 生成状态报告
+    runs-on: ubuntu-latest
+    needs: [health-check, docker-health, security-basics]
+    if: always()
+
+    steps:
+    - name: 生成状态报告
+      run: |
+        echo "# 📊 项目状态报告" > status-report.md
+        echo "生成时间: $(date)" >> status-report.md
+        echo "" >> status-report.md
+        
+        # 检查各作业状态
+        HEALTH_STATUS="${{ needs.health-check.result }}"
+        DOCKER_STATUS="${{ needs.docker-health.result }}"
+        SECURITY_STATUS="${{ needs.security-basics.result }}"
+        
+        echo "## 检查结果" >> status-report.md
+        
+        if [ "$HEALTH_STATUS" = "success" ]; then
+          echo "- ✅ 项目健康检查: 通过" >> status-report.md
+        else
+          echo "- ❌ 项目健康检查: 失败" >> status-report.md
+        fi
+        
+        if [ "$DOCKER_STATUS" = "success" ]; then
+          echo "- ✅ Docker 健康检查: 通过" >> status-report.md
+        else
+          echo "- ⚠️ Docker 健康检查: 需要注意" >> status-report.md
+        fi
+        
+        if [ "$SECURITY_STATUS" = "success" ]; then
+          echo "- ✅ 基础安全检查: 通过" >> status-report.md
+        else
+          echo "- ⚠️ 基础安全检查: 需要注意" >> status-report.md
+        fi
+        
+        echo "" >> status-report.md
+        echo "## 📈 总体状态" >> status-report.md
+        
+        if [ "$HEALTH_STATUS" = "success" ] && [ "$DOCKER_STATUS" = "success" ] && [ "$SECURITY_STATUS" = "success" ]; then
+          echo "🟢 **项目状态良好**" >> status-report.md
+        elif [ "$HEALTH_STATUS" = "success" ]; then
+          echo "🟡 **项目基本健康，部分检查需要关注**" >> status-report.md
+        else
+          echo "🔴 **项目存在问题，需要立即处理**" >> status-report.md
+        fi
+
+    - name: 输出状态报告
+      run: |
+        cat status-report.md >> $GITHUB_STEP_SUMMARY
+
+    - name: 上传状态报告
+      uses: actions/upload-artifact@v4
+      with:
+        name: project-status-report
+        path: status-report.md

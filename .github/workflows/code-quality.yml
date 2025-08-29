@@ -1,0 +1,413 @@
+# 代码质量检查流水线
+# 包含ESLint、Prettier、TypeScript检查、安全扫描等
+
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop, 'feature/**' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  # ESLint 和 Prettier 检查
+  lint-and-format:
+    name: 代码规范检查
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      with:
+        # 获取完整的git历史，用于增量检查
+        fetch-depth: 0
+
+    - name: 设置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    # 后端代码检查
+    - name: 安装后端依赖
+      run: |
+        cd backend
+        npm ci
+
+    - name: 后端 ESLint 检查
+      run: |
+        cd backend
+        npm run lint -- --format=json --output-file=eslint-report.json
+        npm run lint -- --format=compact
+      continue-on-error: true
+
+    - name: 后端 Prettier 检查
+      run: |
+        cd backend
+        npm run format:check || (echo "代码格式不符合Prettier规范" && exit 1)
+
+    # 前端代码检查  
+    - name: 安装前端依赖
+      run: |
+        cd frontend
+        npm ci
+
+    - name: 前端 ESLint 检查
+      run: |
+        cd frontend
+        npm run lint -- --format=json --output-file=eslint-report.json
+        npm run lint -- --format=compact
+      continue-on-error: true
+
+    - name: 前端 Prettier 检查
+      run: |
+        cd frontend
+        npm run format:check || (echo "代码格式不符合Prettier规范" && exit 1)
+
+    # 汇总代码质量报告
+    - name: 生成代码质量报告
+      run: |
+        echo "# 代码质量检查报告" > code-quality-report.md
+        echo "## 检查时间: $(date)" >> code-quality-report.md
+        echo "" >> code-quality-report.md
+        
+        # 检查ESLint报告
+        if [ -f backend/eslint-report.json ]; then
+          echo "### 后端ESLint检查结果" >> code-quality-report.md
+          node -e "
+            const report = require('./backend/eslint-report.json');
+            const totalErrors = report.reduce((sum, file) => sum + file.errorCount, 0);
+            const totalWarnings = report.reduce((sum, file) => sum + file.warningCount, 0);
+            console.log(\`- 错误数量: \${totalErrors}\`);
+            console.log(\`- 警告数量: \${totalWarnings}\`);
+          " >> code-quality-report.md
+        fi
+        
+        if [ -f frontend/eslint-report.json ]; then
+          echo "### 前端ESLint检查结果" >> code-quality-report.md
+          node -e "
+            const report = require('./frontend/eslint-report.json');
+            const totalErrors = report.reduce((sum, file) => sum + file.errorCount, 0);
+            const totalWarnings = report.reduce((sum, file) => sum + file.warningCount, 0);
+            console.log(\`- 错误数量: \${totalErrors}\`);
+            console.log(\`- 警告数量: \${totalWarnings}\`);
+          " >> code-quality-report.md
+        fi
+
+    - name: 上传代码质量报告
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: code-quality-report
+        path: |
+          code-quality-report.md
+          backend/eslint-report.json
+          frontend/eslint-report.json
+
+    # 发布检查结果到PR
+    - name: 注释PR结果
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          if (fs.existsSync('code-quality-report.md')) {
+            const report = fs.readFileSync('code-quality-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 代码质量检查结果\n\n${report}`
+            });
+          }
+
+  # TypeScript 类型检查
+  type-check:
+    name: TypeScript 类型检查
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 后端类型检查
+      run: |
+        cd backend
+        npm ci
+        npm run type-check 2>&1 | tee backend-type-check.log
+
+    - name: 前端类型检查
+      run: |
+        cd frontend
+        npm ci
+        npm run type-check 2>&1 | tee frontend-type-check.log
+
+    - name: 上传类型检查结果
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: type-check-results
+        path: |
+          backend-type-check.log
+          frontend-type-check.log
+
+  # 依赖项安全检查
+  dependency-security:
+    name: 依赖安全检查
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    # 检查已知漏洞
+    - name: npm audit 安全检查
+      run: |
+        echo "## 后端依赖安全检查" > security-report.md
+        cd backend
+        npm audit --audit-level=moderate --json > ../backend-audit.json || true
+        npm audit --audit-level=moderate >> ../security-report.md || true
+        
+        echo "## 前端依赖安全检查" >> ../security-report.md
+        cd ../frontend
+        npm audit --audit-level=moderate --json > ../frontend-audit.json || true
+        npm audit --audit-level=moderate >> ../security-report.md || true
+
+    # 检查过时依赖
+    - name: 检查过时依赖
+      run: |
+        echo "## 过时依赖检查" >> security-report.md
+        
+        echo "### 后端过时依赖" >> security-report.md
+        cd backend
+        npm outdated >> ../security-report.md || echo "所有依赖都是最新的" >> ../security-report.md
+        
+        echo "### 前端过时依赖" >> ../security-report.md
+        cd ../frontend
+        npm outdated >> ../security-report.md || echo "所有依赖都是最新的" >> ../security-report.md
+
+    # 许可证检查
+    - name: 检查依赖许可证
+      run: |
+        npm install -g license-checker
+        
+        echo "## 依赖许可证检查" >> security-report.md
+        
+        echo "### 后端依赖许可证" >> security-report.md
+        cd backend
+        license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC' --summary >> ../security-report.md || true
+        
+        echo "### 前端依赖许可证" >> ../security-report.md
+        cd ../frontend  
+        license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC' --summary >> ../security-report.md || true
+
+    - name: 上传安全检查报告
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          security-report.md
+          backend-audit.json
+          frontend-audit.json
+
+  # 代码复杂度分析
+  complexity-analysis:
+    name: 代码复杂度分析
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: 安装分析工具
+      run: |
+        npm install -g complexity-report madge jscpd
+
+    - name: 后端复杂度分析
+      run: |
+        cd backend
+        npm ci
+        
+        echo "# 后端代码复杂度分析报告" > ../complexity-report.md
+        echo "## 循环复杂度分析" >> ../complexity-report.md
+        
+        # 分析src目录的复杂度
+        find src -name "*.ts" -not -path "*/test/*" -not -name "*.spec.ts" | head -10 | while read file; do
+          echo "### $file" >> ../complexity-report.md
+          complexity-report --format json "$file" 2>/dev/null | jq -r '.reports[0] | "- 复杂度: \(.complexity.cyclomatic)"' >> ../complexity-report.md || echo "- 无法分析" >> ../complexity-report.md
+        done
+
+    - name: 前端复杂度分析
+      run: |
+        cd frontend
+        npm ci
+        
+        echo "## 前端代码复杂度分析" >> ../complexity-report.md
+        
+        # 分析src目录的复杂度
+        find src -name "*.tsx" -o -name "*.ts" | head -10 | while read file; do
+          echo "### $file" >> ../complexity-report.md
+          complexity-report --format json "$file" 2>/dev/null | jq -r '.reports[0] | "- 复杂度: \(.complexity.cyclomatic)"' >> ../complexity-report.md || echo "- 无法分析" >> ../complexity-report.md
+        done
+
+    # 依赖关系分析
+    - name: 依赖关系分析
+      run: |
+        echo "## 模块依赖关系分析" >> complexity-report.md
+        
+        cd backend
+        echo "### 后端模块依赖" >> ../complexity-report.md
+        madge --circular src/ >> ../complexity-report.md || echo "未发现循环依赖" >> ../complexity-report.md
+        
+        cd ../frontend
+        echo "### 前端模块依赖" >> ../complexity-report.md
+        madge --circular src/ >> ../complexity-report.md || echo "未发现循环依赖" >> ../complexity-report.md
+
+    # 代码重复分析
+    - name: 代码重复分析
+      run: |
+        echo "## 代码重复分析" >> complexity-report.md
+        
+        echo "### 后端代码重复" >> complexity-report.md
+        jscpd backend/src --threshold 10 --format table >> complexity-report.md || echo "未发现显著代码重复" >> complexity-report.md
+        
+        echo "### 前端代码重复" >> complexity-report.md
+        jscpd frontend/src --threshold 10 --format table >> complexity-report.md || echo "未发现显著代码重复" >> complexity-report.md
+
+    - name: 上传复杂度分析报告
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: complexity-analysis
+        path: complexity-report.md
+
+  # SonarQube 代码质量分析 (可选)
+  sonarqube-analysis:
+    name: SonarQube 分析
+    runs-on: ubuntu-latest
+    if: false  # 默认禁用，需要配置SonarQube服务器时启用
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: SonarQube 扫描
+      uses: sonarqube-quality-gate-action@master
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        scanMetadataReportFile: .scannerwork/report-task.txt
+
+  # 生成质量门禁报告
+  quality-gate:
+    name: 质量门禁检查
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, type-check, dependency-security, complexity-analysis]
+    if: always()
+
+    steps:
+    - name: 下载所有分析报告
+      uses: actions/download-artifact@v4
+      with:
+        path: quality-reports
+
+    - name: 质量门禁评估
+      id: quality-gate
+      run: |
+        echo "## 🔍 代码质量门禁报告" > quality-gate-report.md
+        echo "生成时间: $(date)" >> quality-gate-report.md
+        echo "" >> quality-gate-report.md
+        
+        # 检查各个作业的结果
+        LINT_STATUS="${{ needs.lint-and-format.result }}"
+        TYPE_CHECK_STATUS="${{ needs.type-check.result }}"
+        SECURITY_STATUS="${{ needs.dependency-security.result }}"
+        COMPLEXITY_STATUS="${{ needs.complexity-analysis.result }}"
+        
+        # 质量门禁规则
+        QUALITY_SCORE=0
+        
+        if [ "$LINT_STATUS" = "success" ]; then
+          echo "✅ 代码规范检查: 通过" >> quality-gate-report.md
+          QUALITY_SCORE=$((QUALITY_SCORE + 25))
+        else
+          echo "❌ 代码规范检查: 失败" >> quality-gate-report.md
+        fi
+        
+        if [ "$TYPE_CHECK_STATUS" = "success" ]; then
+          echo "✅ TypeScript类型检查: 通过" >> quality-gate-report.md
+          QUALITY_SCORE=$((QUALITY_SCORE + 25))
+        else
+          echo "❌ TypeScript类型检查: 失败" >> quality-gate-report.md
+        fi
+        
+        if [ "$SECURITY_STATUS" = "success" ]; then
+          echo "✅ 安全检查: 通过" >> quality-gate-report.md
+          QUALITY_SCORE=$((QUALITY_SCORE + 25))
+        else
+          echo "❌ 安全检查: 失败" >> quality-gate-report.md
+        fi
+        
+        if [ "$COMPLEXITY_STATUS" = "success" ]; then
+          echo "✅ 复杂度分析: 通过" >> quality-gate-report.md
+          QUALITY_SCORE=$((QUALITY_SCORE + 25))
+        else
+          echo "❌ 复杂度分析: 失败" >> quality-gate-report.md
+        fi
+        
+        echo "" >> quality-gate-report.md
+        echo "### 📊 质量评分: $QUALITY_SCORE/100" >> quality-gate-report.md
+        
+        # 设置质量门禁通过标准
+        if [ $QUALITY_SCORE -ge 75 ]; then
+          echo "### ✅ 质量门禁: 通过" >> quality-gate-report.md
+          echo "quality-gate-passed=true" >> $GITHUB_OUTPUT
+        else
+          echo "### ❌ 质量门禁: 未通过" >> quality-gate-report.md
+          echo "quality-gate-passed=false" >> $GITHUB_OUTPUT
+        fi
+        
+        echo "quality-score=$QUALITY_SCORE" >> $GITHUB_OUTPUT
+
+    - name: 发布质量门禁结果
+      run: |
+        cat quality-gate-report.md >> $GITHUB_STEP_SUMMARY
+
+    - name: 质量门禁检查
+      if: steps.quality-gate.outputs.quality-gate-passed == 'false'
+      run: |
+        echo "质量门禁未通过，质量评分: ${{ steps.quality-gate.outputs.quality-score }}/100"
+        echo "请修复代码质量问题后重新提交"
+        exit 1
+
+    - name: 上传质量门禁报告
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: quality-gate-report
+        path: |
+          quality-gate-report.md
+          quality-reports/

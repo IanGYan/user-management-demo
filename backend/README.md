@@ -1,98 +1,355 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 用户管理系统 - 后端 API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+基于 NestJS 构建的用户管理系统后端 API，提供安全的用户认证、注册、登录和资料管理功能。
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+![NestJS](https://img.shields.io/badge/NestJS-v10-red.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-v5-blue.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v15-blue.svg)
+![JWT](https://img.shields.io/badge/JWT-Authentication-green.svg)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)
 
-## Description
+## 🎯 项目概述
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+这是一个企业级的用户管理系统后端 API，采用 NestJS 框架构建，具有以下特性：
 
-## Project setup
+- 🔐 **安全认证**: JWT 双令牌机制，bcrypt 密码加密
+- 📧 **邮件服务**: 用户注册验证、密码重置
+- 🛡️ **安全防护**: 限流、CORS、输入验证
+- 📊 **数据库**: PostgreSQL + TypeORM，自动迁移
+- 🧪 **测试**: 单元测试 + 端到端测试
+- 📝 **文档**: Swagger API 文档自动生成
+- 🐳 **容器化**: Docker 开发和部署支持
 
-```bash
-$ npm install
-```
+## 🚀 快速开始
 
-## Compile and run the project
+### 前置要求
+
+- Node.js >= 18.0.0
+- PostgreSQL >= 13.0
+- Redis >= 6.0 (可选，用于缓存)
+- Docker & Docker Compose (推荐)
+
+### 安装依赖
 
 ```bash
-# development
-$ npm run start
+# 安装项目依赖
+npm install
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# 或使用 yarn
+yarn install
 ```
 
-## Run tests
+### 环境配置
 
 ```bash
-# unit tests
-$ npm run test
+# 复制环境变量文件
+cp .env.example .env
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# 编辑环境变量（重要：修改 JWT 密钥等敏感信息）
+nano .env
 ```
 
-## Deployment
+### 数据库设置
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+#### 方式一：使用 Docker（推荐）
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# 启动数据库服务
+docker-compose up -d postgres redis mailhog
+
+# 运行数据库迁移
+npm run migration:run
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+#### 方式二：本地 PostgreSQL
 
-## Resources
+```bash
+# 创建数据库
+psql -U postgres -c "CREATE DATABASE user_management;"
 
-Check out a few resources that may come in handy when working with NestJS:
+# 运行迁移
+npm run migration:run
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 🏃‍♂️ 运行项目
 
-## Support
+### 开发环境
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+# 开发模式（热重载）
+npm run start:dev
 
-## Stay in touch
+# 标准开发模式
+npm run start
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# 调试模式
+npm run start:debug
+```
 
-## License
+### 生产环境
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+# 构建项目
+npm run build
+
+# 生产模式运行
+npm run start:prod
+```
+
+### 访问服务
+
+- **API 服务**: http://localhost:3001
+- **API 文档**: http://localhost:3001/api/docs
+- **健康检查**: http://localhost:3001/health
+
+## 🧪 测试
+
+### 运行测试
+
+```bash
+# 单元测试
+npm run test
+
+# 单元测试（监听模式）
+npm run test:watch
+
+# 端到端测试
+npm run test:e2e
+
+# 测试覆盖率
+npm run test:cov
+
+# 测试覆盖率（详细报告）
+npm run test:cov -- --verbose
+```
+
+### 测试配置
+
+- **单元测试**: Jest + 内存数据库 (SQLite)
+- **E2E 测试**: Supertest + 测试数据库
+- **覆盖率目标**: >90%
+- **测试环境**: 自动化的数据库清理和种子数据
+
+## 🚀 部署
+
+### Docker 部署（推荐）
+
+```bash
+# 构建镜像
+docker build -t user-management-api .
+
+# 运行容器
+docker run -p 3001:3001 --env-file .env user-management-api
+
+# 使用 Docker Compose
+docker-compose up -d
+```
+
+### 传统部署
+
+```bash
+# 1. 构建项目
+npm run build
+
+# 2. 设置生产环境变量
+export NODE_ENV=production
+
+# 3. 运行数据库迁移
+npm run migration:run
+
+# 4. 启动应用
+npm run start:prod
+```
+
+### 部署清单
+
+- [ ] 设置生产环境变量
+- [ ] 配置数据库连接
+- [ ] 运行数据库迁移
+- [ ] 配置 HTTPS/SSL
+- [ ] 设置反向代理 (Nginx)
+- [ ] 配置监控和日志
+- [ ] 设置备份策略
+
+## 📁 项目结构
+
+```
+src/
+├── auth/                    # 认证模块
+│   ├── dto/                # 数据传输对象
+│   ├── entities/           # 实体类
+│   ├── guards/             # 守卫
+│   ├── services/           # 服务
+│   ├── strategies/         # 认证策略
+│   └── auth.controller.ts  # 认证控制器
+├── user/                   # 用户模块
+│   ├── dto/
+│   ├── entities/
+│   ├── user.controller.ts
+│   └── user.service.ts
+├── email/                  # 邮件模块
+├── common/                 # 公共模块
+│   ├── decorators/         # 装饰器
+│   ├── filters/            # 过滤器
+│   ├── interceptors/       # 拦截器
+│   ├── services/           # 公共服务
+│   └── types/              # 类型定义
+├── config/                 # 配置模块
+├── database/               # 数据库模块
+│   └── migrations/         # 数据库迁移
+└── main.ts                 # 应用入口
+```
+
+## 🔧 开发工具
+
+### 代码质量
+
+```bash
+# ESLint 检查
+npm run lint
+npm run lint:fix
+
+# 代码格式化
+npm run format
+
+# 类型检查
+npm run type-check
+```
+
+### 数据库操作
+
+```bash
+# 生成迁移文件
+npm run migration:generate -- --name=AddNewFeature
+
+# 运行迁移
+npm run migration:run
+
+# 回滚迁移
+npm run migration:revert
+
+# 查看迁移状态
+npm run migration:show
+```
+
+### 日志和调试
+
+```bash
+# 查看应用日志
+tail -f logs/app.log
+
+# 数据库查询日志
+# 在 .env 中设置 TYPEORM_LOGGING=true
+```
+
+## 📚 API 文档
+
+### Swagger 文档
+
+访问 http://localhost:3001/api/docs 查看完整的 API 文档。
+
+### 主要 API 端点
+
+#### 认证相关
+- `POST /auth/register` - 用户注册
+- `POST /auth/login` - 用户登录
+- `POST /auth/logout` - 用户登出
+- `POST /auth/refresh` - 刷新令牌
+- `GET /auth/verify-email` - 邮箱验证
+- `POST /auth/forgot-password` - 忘记密码
+- `POST /auth/reset-password` - 重置密码
+
+#### 用户相关
+- `GET /user/profile` - 获取用户资料
+- `PUT /user/profile` - 更新用户资料
+- `POST /user/change-password` - 修改密码
+- `DELETE /user/account` - 删除账户
+
+### 响应格式
+
+```typescript
+// 成功响应
+{
+  "success": true,
+  "data": {...},
+  "message": "操作成功"
+}
+
+// 错误响应
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "输入验证失败",
+    "details": [...]
+  }
+}
+```
+
+## 🛠️ 故障排除
+
+### 常见问题
+
+#### 1. 数据库连接失败
+```bash
+# 检查数据库是否运行
+docker-compose ps
+
+# 查看数据库日志
+docker-compose logs postgres
+
+# 测试连接
+npm run db:test-connection
+```
+
+#### 2. 端口被占用
+```bash
+# 查找占用进程
+lsof -i :3001
+
+# 终止进程
+kill -9 <PID>
+
+# 或修改 .env 中的端口
+PORT=3002
+```
+
+#### 3. 迁移失败
+```bash
+# 重置数据库
+npm run db:reset
+
+# 重新运行迁移
+npm run migration:run
+```
+
+## 🤝 贡献指南
+
+1. Fork 项目
+2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
+3. 提交更改 (`git commit -m 'Add some amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 开启 Pull Request
+
+### 代码规范
+
+- 遵循 ESLint 和 Prettier 配置
+- 编写单元测试
+- 更新 API 文档
+- 遵循 TypeScript 严格模式
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](../LICENSE) 文件了解详情。
+
+## 📞 支持
+
+- 📧 邮件: support@userapp.com
+- 📖 文档: [项目文档](../docs/)
+- 🐛 问题反馈: [GitHub Issues](../../issues)
+
+---
+
+**技术栈**: NestJS + TypeScript + PostgreSQL + TypeORM + JWT  
+**版本**: v1.0.0  
+**最后更新**: 2025年1月21日

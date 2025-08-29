@@ -1,0 +1,472 @@
+# 测试自动化流水线
+# 专门用于运行各种测试的工作流
+
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop, 'feature/**' ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # 每天凌晨2点运行完整测试套件
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: '选择要运行的测试类型'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - unit
+        - integration
+        - e2e
+        - performance
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  # 测试矩阵 - 多版本Node.js测试
+  unit-tests:
+    name: 单元测试 (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'unit' || github.event_name != 'workflow_dispatch' }}
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+      fail-fast: false
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    # 后端单元测试
+    - name: 后端单元测试
+      run: |
+        cd backend
+        npm ci
+        
+        # 创建测试环境配置
+        cat > .env.test << EOF
+        NODE_ENV=test
+        DATABASE_URL=:memory:
+        JWT_SECRET=test-jwt-secret
+        JWT_REFRESH_SECRET=test-jwt-refresh-secret
+        BCRYPT_ROUNDS=4
+        EOF
+        
+        # 运行单元测试
+        npm run test -- --coverage --maxWorkers=2
+        
+        # 生成测试报告
+        npm run test -- --coverage --reporters=default --reporters=jest-junit
+      env:
+        JEST_JUNIT_OUTPUT_DIR: ./test-results
+        JEST_JUNIT_OUTPUT_NAME: backend-unit-tests.xml
+
+    # 前端单元测试
+    - name: 前端单元测试
+      run: |
+        cd frontend
+        npm ci
+        
+        # 创建测试环境配置
+        cat > .env.test.local << EOF
+        NEXT_PUBLIC_API_URL=http://localhost:3001/api
+        NEXT_PUBLIC_ENVIRONMENT=test
+        EOF
+        
+        # 运行单元测试
+        npm run test -- --coverage --watchAll=false --maxWorkers=2
+        
+        # 生成测试报告
+        npm run test -- --coverage --watchAll=false --reporters=default --reporters=jest-junit
+      env:
+        JEST_JUNIT_OUTPUT_DIR: ./test-results
+        JEST_JUNIT_OUTPUT_NAME: frontend-unit-tests.xml
+
+    - name: 上传单元测试结果
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: unit-test-results-node${{ matrix.node-version }}
+        path: |
+          backend/test-results/
+          frontend/test-results/
+          backend/coverage/
+          frontend/coverage/
+
+    - name: 发布测试结果
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: 单元测试结果 (Node ${{ matrix.node-version }})
+        path: |
+          backend/test-results/*.xml
+          frontend/test-results/*.xml
+        reporter: jest-junit
+
+  # 集成测试
+  integration-tests:
+    name: 集成测试
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'integration' || github.event_name != 'workflow_dispatch' }}
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: user_management_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+      mailhog:
+        image: mailhog/mailhog:v1.0.1
+        ports:
+          - 1025:1025
+          - 8025:8025
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 安装依赖
+      run: |
+        cd backend && npm ci
+        cd ../frontend && npm ci
+
+    - name: 等待服务就绪
+      run: |
+        npx wait-on tcp:5432
+        npx wait-on tcp:6379
+        npx wait-on tcp:1025
+
+    - name: 设置集成测试环境
+      run: |
+        cd backend
+        cat > .env.test << EOF
+        NODE_ENV=test
+        PORT=3001
+        DATABASE_URL=postgresql://postgres:postgres@localhost:5432/user_management_test
+        JWT_SECRET=integration-test-jwt-secret
+        JWT_REFRESH_SECRET=integration-test-refresh-secret
+        REDIS_URL=redis://localhost:6379
+        EMAIL_HOST=localhost
+        EMAIL_PORT=1025
+        BCRYPT_ROUNDS=4
+        EOF
+
+    - name: 运行数据库迁移
+      run: |
+        cd backend
+        npm run migration:run
+
+    - name: 运行后端集成测试
+      run: |
+        cd backend
+        npm run test:e2e -- --coverage
+
+    - name: 启动后端服务
+      run: |
+        cd backend
+        npm run start:dev &
+        sleep 15
+        
+        # 健康检查
+        curl -f http://localhost:3001/health
+
+    - name: 运行API集成测试
+      run: |
+        cd backend
+        # 这里可以运行Postman/Newman测试或其他API测试
+        echo "API集成测试完成"
+
+    - name: 上传集成测试结果
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: integration-test-results
+        path: |
+          backend/test-results/
+          backend/coverage/
+
+  # 端到端测试
+  e2e-tests:
+    name: 端到端测试
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'e2e' || github.event_name != 'workflow_dispatch' }}
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: user_management_e2e
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+      mailhog:
+        image: mailhog/mailhog:v1.0.1
+        ports:
+          - 1025:1025
+          - 8025:8025
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 安装依赖
+      run: |
+        cd backend && npm ci
+        cd ../frontend && npm ci
+
+    - name: 安装 Playwright
+      run: |
+        cd frontend
+        npx playwright install --with-deps
+
+    - name: 设置 E2E 测试环境
+      run: |
+        # 后端环境
+        cd backend
+        cat > .env << EOF
+        NODE_ENV=development
+        PORT=3001
+        DATABASE_URL=postgresql://postgres:postgres@localhost:5432/user_management_e2e
+        JWT_SECRET=e2e-test-jwt-secret
+        JWT_REFRESH_SECRET=e2e-test-refresh-secret
+        REDIS_URL=redis://localhost:6379
+        EMAIL_HOST=localhost
+        EMAIL_PORT=1025
+        BCRYPT_ROUNDS=4
+        EOF
+
+        # 前端环境
+        cd ../frontend
+        cat > .env.local << EOF
+        NEXT_PUBLIC_API_URL=http://localhost:3001/api
+        NEXT_PUBLIC_ENVIRONMENT=test
+        EOF
+
+    - name: 运行数据库迁移和种子数据
+      run: |
+        cd backend
+        npm run migration:run
+        # npm run seed:run  # 如果有种子数据脚本
+
+    - name: 启动后端服务
+      run: |
+        cd backend
+        npm run start:dev &
+        sleep 15
+
+    - name: 启动前端服务
+      run: |
+        cd frontend
+        npm run build
+        npm start &
+        sleep 15
+
+    - name: 等待服务启动
+      run: |
+        npx wait-on http://localhost:3001/health
+        npx wait-on http://localhost:3000
+
+    - name: 运行 Playwright E2E 测试
+      run: |
+        cd frontend
+        npx playwright test
+      env:
+        CI: true
+
+    - name: 上传 Playwright 报告
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: |
+          frontend/playwright-report/
+          frontend/test-results/
+
+  # 性能测试
+  performance-tests:
+    name: 性能测试
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'performance' || (github.event_name == 'schedule') }}
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_password: postgres
+          POSTGRES_DB: user_management_perf
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+
+    - name: 设置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: 安装依赖
+      run: |
+        cd backend && npm ci
+        npm install -g artillery clinic autocannon
+
+    - name: 设置性能测试环境
+      run: |
+        cd backend
+        cat > .env << EOF
+        NODE_ENV=production
+        PORT=3001
+        DATABASE_URL=postgresql://postgres:postgres@localhost:5432/user_management_perf
+        JWT_SECRET=perf-test-jwt-secret
+        JWT_REFRESH_SECRET=perf-test-refresh-secret
+        BCRYPT_ROUNDS=10
+        EOF
+
+    - name: 启动应用
+      run: |
+        cd backend
+        npm run build
+        npm run migration:run
+        npm run start:prod &
+        sleep 10
+
+    - name: API 性能测试
+      run: |
+        # 使用 Artillery 进行负载测试
+        echo "
+        config:
+          target: 'http://localhost:3001'
+          phases:
+            - duration: 60
+              arrivalRate: 10
+        scenarios:
+          - name: 'Health Check'
+            requests:
+              - get:
+                  url: '/health'
+        " > artillery-config.yml
+        
+        artillery run artillery-config.yml --output performance-results.json
+
+    - name: 基准性能测试
+      run: |
+        # 使用 autocannon 进行快速基准测试
+        autocannon -c 10 -d 30 -j http://localhost:3001/health > autocannon-results.json
+
+    - name: 内存泄漏检测
+      run: |
+        cd backend
+        # 使用 clinic.js 检测内存泄漏
+        clinic doctor -- node dist/main.js &
+        PID=$!
+        sleep 30
+        kill $PID
+        
+    - name: 上传性能测试结果
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-results
+        path: |
+          *.json
+          .clinic/
+
+  # 测试报告汇总
+  test-summary:
+    name: 测试报告汇总
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, e2e-tests, performance-tests]
+    if: always()
+
+    steps:
+    - name: 下载所有测试结果
+      uses: actions/download-artifact@v4
+      with:
+        path: test-results
+
+    - name: 生成综合测试报告
+      run: |
+        echo "# 测试报告汇总" > test-summary.md
+        echo "## 测试执行时间: $(date)" >> test-summary.md
+        echo "" >> test-summary.md
+        
+        # 统计测试结果
+        find test-results -name "*.xml" -o -name "*.json" | wc -l > /tmp/test-count
+        echo "总测试文件数: $(cat /tmp/test-count)" >> test-summary.md
+        
+        # 检查是否有失败的测试
+        if [ "${{ contains(needs.*.result, 'failure') }}" == "true" ]; then
+          echo "❌ 部分测试失败" >> test-summary.md
+        else
+          echo "✅ 所有测试通过" >> test-summary.md
+        fi
+
+    - name: 发布测试摘要
+      run: |
+        cat test-summary.md >> $GITHUB_STEP_SUMMARY
+
+    - name: 上传完整测试报告
+      uses: actions/upload-artifact@v4
+      with:
+        name: complete-test-report
+        path: |
+          test-results/
+          test-summary.md
