@@ -37,20 +37,20 @@ export interface UIState {
   // 主题相关
   theme: Theme
   isDarkMode: boolean
-  
+
   // 全局加载状态
   globalLoading: LoadingState
-  
+
   // Toast 通知
   toasts: Toast[]
-  
+
   // 侧边栏和导航状态
   isSidebarOpen: boolean
   isMobileMenuOpen: boolean
-  
+
   // 模态框状态
   modals: Record<string, boolean>
-  
+
   // 页面标题
   pageTitle?: string | undefined
 }
@@ -62,27 +62,31 @@ export interface UIActions {
   // 主题控制
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
-  
+
   // 加载状态控制
-  setGlobalLoading: (loading: boolean, message?: string, progress?: number) => void
-  
+  setGlobalLoading: (
+    loading: boolean,
+    message?: string,
+    progress?: number
+  ) => void
+
   // Toast 通知控制
   addToast: (toast: Omit<Toast, 'id'>) => void
   removeToast: (id: string) => void
   clearAllToasts: () => void
-  
+
   // 侧边栏和导航控制
   setSidebarOpen: (open: boolean) => void
   toggleSidebar: () => void
   setMobileMenuOpen: (open: boolean) => void
   toggleMobileMenu: () => void
-  
+
   // 模态框控制
   openModal: (modalId: string) => void
   closeModal: (modalId: string) => void
   toggleModal: (modalId: string) => void
   closeAllModals: () => void
-  
+
   // 页面标题
   setPageTitle: (title?: string) => void
 }
@@ -152,27 +156,23 @@ export const useUIStore = create<UIStore>()(
       // 设置主题
       setTheme: (theme: Theme) => {
         const isDarkMode = calculateIsDarkMode(theme)
-        
+
         // 保存到 localStorage
         if (typeof window !== 'undefined') {
           localStorage.setItem('theme', theme)
-          
+
           // 更新 HTML 类名
           document.documentElement.classList.toggle('dark', isDarkMode)
         }
 
-        set(
-          state => ({ ...state, theme, isDarkMode }),
-          false,
-          'setTheme'
-        )
+        set(state => ({ ...state, theme, isDarkMode }), false, 'setTheme')
       },
 
       // 切换主题
       toggleTheme: () => {
         const currentTheme = get().theme
         let newTheme: Theme
-        
+
         switch (currentTheme) {
           case 'light':
             newTheme = 'dark'
@@ -186,12 +186,16 @@ export const useUIStore = create<UIStore>()(
           default:
             newTheme = 'light'
         }
-        
+
         get().setTheme(newTheme)
       },
 
       // 设置全局加载状态
-      setGlobalLoading: (isLoading: boolean, message?: string, progress?: number) => {
+      setGlobalLoading: (
+        isLoading: boolean,
+        message?: string,
+        progress?: number
+      ) => {
         set(
           state => ({
             ...state,
@@ -213,7 +217,7 @@ export const useUIStore = create<UIStore>()(
           id: generateId(),
           duration: toast.duration ?? 5000,
         }
-        
+
         set(
           state => ({
             ...state,
@@ -222,7 +226,7 @@ export const useUIStore = create<UIStore>()(
           false,
           'addToast'
         )
-        
+
         // 自动移除 toast
         if (newToast.duration && newToast.duration > 0) {
           setTimeout(() => {
@@ -245,11 +249,7 @@ export const useUIStore = create<UIStore>()(
 
       // 清除所有 Toast 通知
       clearAllToasts: () => {
-        set(
-          state => ({ ...state, toasts: [] }),
-          false,
-          'clearAllToasts'
-        )
+        set(state => ({ ...state, toasts: [] }), false, 'clearAllToasts')
       },
 
       // 设置侧边栏状态
@@ -329,11 +329,7 @@ export const useUIStore = create<UIStore>()(
 
       // 关闭所有模态框
       closeAllModals: () => {
-        set(
-          state => ({ ...state, modals: {} }),
-          false,
-          'closeAllModals'
-        )
+        set(state => ({ ...state, modals: {} }), false, 'closeAllModals')
       },
 
       // 设置页面标题
@@ -343,7 +339,7 @@ export const useUIStore = create<UIStore>()(
           const appName = process.env.NEXT_PUBLIC_APP_NAME || '用户管理系统'
           document.title = title ? `${title} - ${appName}` : appName
         }
-        
+
         set(
           state => ({ ...state, pageTitle: title ?? undefined }),
           false,

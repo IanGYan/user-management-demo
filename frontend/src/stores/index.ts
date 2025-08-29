@@ -9,7 +9,14 @@ export type { AuthState, AuthActions, AuthStore } from './auth'
 
 // UI Store
 export { useUIStore } from './ui'
-export type { UIState, UIActions, UIStore, Theme, Toast, LoadingState } from './ui'
+export type {
+  UIState,
+  UIActions,
+  UIStore,
+  Theme,
+  Toast,
+  LoadingState,
+} from './ui'
 
 /**
  * 重置所有 stores 的函数
@@ -33,7 +40,7 @@ export const resetAllStores = () => {
 export const initializeStores = () => {
   // 可以在这里添加 stores 的初始化逻辑
   // 例如：恢复主题设置、初始化认证状态等
-  
+
   // 恢复主题设置
   if (typeof window !== 'undefined') {
     const savedTheme = localStorage.getItem('theme') as any

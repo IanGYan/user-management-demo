@@ -11,10 +11,10 @@ export interface AuthState {
   status: AuthStatus
   isAuthenticated: boolean
   isLoading: boolean
-  
+
   // 用户信息
   user: User | null
-  
+
   // 错误信息
   error: string | null
 }
@@ -28,12 +28,12 @@ export interface AuthActions {
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
   setUser: (user: User | null) => void
-  
+
   // 认证操作
   login: (loginData: LoginResponse) => void
   logout: () => void
   updateUser: (userData: Partial<User>) => void
-  
+
   // 初始化和状态检查
   initialize: () => void
   checkAuthStatus: () => void
@@ -80,29 +80,17 @@ export const useAuthStore = create<AuthStore>()(
 
       // 设置加载状态
       setLoading: (loading: boolean) => {
-        set(
-          state => ({ ...state, isLoading: loading }),
-          false,
-          'setLoading'
-        )
+        set(state => ({ ...state, isLoading: loading }), false, 'setLoading')
       },
 
       // 设置错误信息
       setError: (error: string | null) => {
-        set(
-          state => ({ ...state, error }),
-          false,
-          'setError'
-        )
+        set(state => ({ ...state, error }), false, 'setError')
       },
 
       // 设置用户信息
       setUser: (user: User | null) => {
-        set(
-          state => ({ ...state, user }),
-          false,
-          'setUser'
-        )
+        set(state => ({ ...state, user }), false, 'setUser')
       },
 
       // 登录处理
@@ -151,25 +139,17 @@ export const useAuthStore = create<AuthStore>()(
         if (!currentUser) return
 
         const updatedUser = { ...currentUser, ...userData }
-        
+
         // 更新 localStorage
         AuthManager.setUser(updatedUser)
-        
+
         // 更新 store
-        set(
-          state => ({ ...state, user: updatedUser }),
-          false,
-          'updateUser'
-        )
+        set(state => ({ ...state, user: updatedUser }), false, 'updateUser')
       },
 
       // 初始化认证状态
       initialize: () => {
-        set(
-          state => ({ ...state, isLoading: true }),
-          false,
-          'initialize/start'
-        )
+        set(state => ({ ...state, isLoading: true }), false, 'initialize/start')
 
         try {
           const status = getAuthStatus()
@@ -209,7 +189,7 @@ export const useAuthStore = create<AuthStore>()(
       checkAuthStatus: () => {
         const status = getAuthStatus()
         const user = AuthManager.getUser()
-        
+
         set(
           state => ({
             ...state,
@@ -224,11 +204,7 @@ export const useAuthStore = create<AuthStore>()(
 
       // 清除错误
       clearError: () => {
-        set(
-          state => ({ ...state, error: null }),
-          false,
-          'clearError'
-        )
+        set(state => ({ ...state, error: null }), false, 'clearError')
       },
     }),
     {

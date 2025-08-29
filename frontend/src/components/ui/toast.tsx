@@ -30,7 +30,10 @@ export interface ToastProps
 }
 
 const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
-  ({ className, variant, onClose, duration = 5000, children, ...props }, ref) => {
+  (
+    { className, variant, onClose, duration = 5000, children, ...props },
+    ref
+  ) => {
     React.useEffect(() => {
       if (duration > 0 && onClose) {
         const timer = setTimeout(onClose, duration)
@@ -45,9 +48,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         className={cn(toastVariants({ variant }), className)}
         {...props}
       >
-        <div className="grid gap-1">
-          {children}
-        </div>
+        <div className="grid gap-1">{children}</div>
         {onClose && (
           <button
             onClick={onClose}
@@ -91,11 +92,7 @@ const ToastDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn('text-sm opacity-90', className)}
-    {...props}
-  />
+  <div ref={ref} className={cn('text-sm opacity-90', className)} {...props} />
 ))
 ToastDescription.displayName = 'ToastDescription'
 
@@ -140,14 +137,14 @@ export const useToast = () => {
         variant?: 'default' | 'destructive' | 'success' | 'warning'
         duration?: number
       } = { id, variant, duration }
-      
+
       if (title !== undefined) {
         toastData.title = title
       }
       if (description !== undefined) {
         toastData.description = description
       }
-      
+
       setToasts(prev => [...prev, toastData])
     },
     []

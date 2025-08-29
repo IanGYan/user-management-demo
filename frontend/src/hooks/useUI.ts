@@ -17,7 +17,7 @@ export const useUI = () => {
     isMobileMenuOpen,
     modals,
     pageTitle,
-    
+
     setTheme,
     toggleTheme,
     setGlobalLoading,
@@ -149,30 +149,30 @@ export const useUI = () => {
     globalLoading,
     toasts,
     pageTitle,
-    
+
     // 主题控制
     setTheme,
     toggleTheme,
-    
+
     // Toast 控制
     toast,
     addToast,
     removeToast,
     clearAllToasts,
-    
+
     // 加载状态控制
     loading,
     setGlobalLoading,
-    
+
     // 模态框控制
     modal,
-    
+
     // 侧边栏控制
     sidebar,
-    
+
     // 移动端菜单控制
     mobileMenu,
-    
+
     // 页面标题
     setPageTitle,
   }

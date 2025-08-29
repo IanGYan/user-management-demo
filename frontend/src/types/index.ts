@@ -63,13 +63,15 @@ export interface UpdateUserFormData {
 }
 
 // 组件 Props 类型
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost'
   size?: 'default' | 'sm' | 'lg'
   loading?: boolean
 }
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
   helperText?: string
