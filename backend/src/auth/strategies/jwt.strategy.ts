@@ -6,6 +6,17 @@ import { UserService } from '../../user/user.service';
 import { JwtPayload } from '../services/jwt.service';
 
 /**
+ * 用户认证信息接口
+ */
+interface AuthenticatedUser {
+  id: string;
+  email: string;
+  isVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
  * JWT authentication strategy using Passport
  * Validates JWT tokens and retrieves user information
  */
@@ -15,11 +26,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     configService: ConfigService,
     private readonly userService: UserService,
   ) {
+    const jwtSecret = configService.get<string>('jwt.secret');
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey:
-        configService.get<string>('jwt.secret') || 'default-secret-key',
+      secretOrKey: jwtSecret || 'default-secret-key',
     });
   }
 
@@ -29,7 +40,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    * @param payload - Decoded JWT payload
    * @returns User object if valid, throws UnauthorizedException if invalid
    */
-  async validate(payload: JwtPayload): Promise<any> {
+  async validate(payload: JwtPayload): Promise<AuthenticatedUser> {
     try {
       // Extract user ID from payload
       const userId = payload.sub;

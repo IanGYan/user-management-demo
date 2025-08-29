@@ -17,7 +17,7 @@ export default [
         ecmaFeatures: {
           jsx: true,
         },
-        project: true,
+        project: './tsconfig.json',
       },
       globals: {
         // 浏览器环境
@@ -80,7 +80,7 @@ export default [
         ecmaFeatures: {
           jsx: true,
         },
-        project: true,
+        project: './tsconfig.json',
       },
       globals: {
         // 浏览器环境
@@ -129,7 +129,7 @@ export default [
         },
       ],
       // 基础规则
-      'no-console': 'warn',
+      'no-console': 'off', // 测试文件允许 console
       'no-debugger': 'error',
       'prefer-const': 'error',
       'no-var': 'error',

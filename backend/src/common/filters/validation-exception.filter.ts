@@ -9,6 +9,28 @@ import { Request, Response } from 'express';
 import { ApiErrorResponse } from '../types/api-response.type';
 
 /**
+ * 验证异常响应对象接口
+ */
+interface ValidationExceptionResponse {
+  message?: string | string[];
+  error?: string;
+  statusCode?: number;
+}
+
+/**
+ * 类型保护：检查是否为验证异常响应对象
+ */
+function isValidationExceptionResponse(
+  obj: unknown,
+): obj is ValidationExceptionResponse {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    ('message' in obj || 'error' in obj || 'statusCode' in obj)
+  );
+}
+
+/**
  * Exception filter specifically for handling validation errors
  * and formatting them with detailed field-level error messages
  */
@@ -22,7 +44,7 @@ export class ValidationExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     const status = exception.getStatus();
-    const exceptionResponse = exception.getResponse() as any;
+    const exceptionResponse = exception.getResponse();
 
     const errorResponse: ApiErrorResponse = {
       success: false,
@@ -36,7 +58,9 @@ export class ValidationExceptionFilter implements ExceptionFilter {
     this.logger.warn('Validation Error', {
       method: request.method,
       url: request.url,
-      errors: exceptionResponse.message,
+      errors: isValidationExceptionResponse(exceptionResponse)
+        ? exceptionResponse.message
+        : 'Unknown validation error',
       ip: request.ip || 'Unknown',
     });
 
@@ -46,7 +70,11 @@ export class ValidationExceptionFilter implements ExceptionFilter {
   /**
    * Formats validation error messages for better user experience
    */
-  private formatValidationMessage(exceptionResponse: any): string {
+  private formatValidationMessage(exceptionResponse: unknown): string {
+    if (!isValidationExceptionResponse(exceptionResponse)) {
+      return '请求数据验证失败';
+    }
+
     if (exceptionResponse.message && Array.isArray(exceptionResponse.message)) {
       // Join multiple validation errors with semicolons
       return exceptionResponse.message.join('; ');

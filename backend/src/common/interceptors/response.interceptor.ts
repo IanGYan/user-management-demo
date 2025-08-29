@@ -29,13 +29,13 @@ export class ResponseInterceptor<T>
     const now = Date.now();
 
     return next.handle().pipe(
-      map((data) => {
+      map((data: T) => {
         const responseTime = Date.now() - now;
 
         // Log successful requests for monitoring
         this.logSuccessfulRequest(request, responseTime);
 
-        return this.formatResponse(data);
+        return this.formatResponse<T>(data);
       }),
     );
   }
@@ -43,10 +43,10 @@ export class ResponseInterceptor<T>
   /**
    * Formats the response data into standardized API response format
    */
-  private formatResponse<T>(data: T): ApiResponse<T> {
+  private formatResponse<U>(data: U): ApiResponse<U> {
     // If data is already in ApiResponse format, return as is
     if (this.isApiResponse(data)) {
-      return data as ApiResponse<T>;
+      return data as ApiResponse<U>;
     }
 
     // If data is null or undefined, return success response without data
@@ -66,10 +66,14 @@ export class ResponseInterceptor<T>
 
   /**
    * Checks if the data is already in ApiResponse format
+   * Type guard function for ApiResponse interface
    */
-  private isApiResponse(data: any): boolean {
+  private isApiResponse(data: unknown): data is ApiResponse<unknown> {
     return (
-      data && typeof data === 'object' && typeof data.success === 'boolean'
+      data !== null &&
+      typeof data === 'object' &&
+      'success' in data &&
+      typeof (data as Record<string, unknown>).success === 'boolean'
     );
   }
 

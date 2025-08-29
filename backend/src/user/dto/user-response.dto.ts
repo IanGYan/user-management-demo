@@ -26,11 +26,11 @@ export class UserResponseDto {
     description: 'Account creation date',
     example: '2024-01-15T10:30:00Z',
   })
-  createdAt!: Date;
+  createdAt!: string;
 
   @ApiProperty({
     description: 'Last account update date',
     example: '2024-01-16T14:20:00Z',
   })
-  updatedAt!: Date;
+  updatedAt!: string;
 }

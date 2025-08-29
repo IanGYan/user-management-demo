@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -8,6 +8,8 @@ import { User } from './entities/user.entity';
  */
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -30,6 +32,7 @@ export class UserService {
       const user = await this.userRepository.findOne({ where: { id } });
       return user;
     } catch (error) {
+      this.logger.error(`查找用户失败 [ID: ${id}]`, error);
       return null;
     }
   }

@@ -38,7 +38,7 @@ export const useUI = () => {
   // 初始化主题
   useEffect(() => {
     // 从 localStorage 恢复主题设置
-    const savedTheme = localStorage.getItem('theme') as any
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'system' | null
     if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
       setTheme(savedTheme)
     } else {

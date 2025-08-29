@@ -24,8 +24,10 @@ export interface ThrottleConfig {
  * }
  * ```
  */
-export const Throttle = (ttl: number, limit: number) =>
-  SetMetadata('throttle', { ttl, limit });
+export const Throttle = (
+  ttl: number,
+  limit: number,
+): ReturnType<typeof SetMetadata> => SetMetadata('throttle', { ttl, limit });
 
 /**
  * Decorator to skip throttling for specific routes
@@ -40,4 +42,5 @@ export const Throttle = (ttl: number, limit: number) =>
  * }
  * ```
  */
-export const SkipThrottle = () => SetMetadata('skipThrottle', true);
+export const SkipThrottle = (): ReturnType<typeof SetMetadata> =>
+  SetMetadata('skipThrottle', true);

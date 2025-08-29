@@ -14,4 +14,6 @@ import { SetMetadata } from '@nestjs/common';
  * }
  * ```
  */
-export const Public = () => SetMetadata('isPublic', true);
+export function Public(): ReturnType<typeof SetMetadata> {
+  return SetMetadata('isPublic', true);
+}

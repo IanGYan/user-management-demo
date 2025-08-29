@@ -1,4 +1,24 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { Request } from 'express';
+
+/**
+ * 认证用户接口
+ */
+export interface AuthenticatedUser {
+  id: string;
+  email: string;
+  isVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  [key: string]: unknown;
+}
+
+/**
+ * 带有用户信息的请求接口
+ */
+interface RequestWithUser extends Request {
+  user?: AuthenticatedUser;
+}
 
 /**
  * Parameter decorator to extract the current authenticated user from the request
@@ -8,7 +28,7 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
  * ```typescript
  * @Get('profile')
  * @UseGuards(JwtAuthGuard)
- * async getProfile(@CurrentUser() user: any) {
+ * async getProfile(@CurrentUser() user: AuthenticatedUser) {
  *   return this.userService.getProfile(user.id);
  * }
  * ```
@@ -18,8 +38,8 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
  * @returns User object or specific user property if data parameter is provided
  */
 export const CurrentUser = createParamDecorator(
-  (data: string | undefined, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
+  (data: string | undefined, ctx: ExecutionContext): unknown => {
+    const request = ctx.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
     if (!user) {

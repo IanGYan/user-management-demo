@@ -21,6 +21,17 @@ export interface TokenPair {
 }
 
 /**
+ * 解码后的JWT令牌接口
+ */
+export interface DecodedToken {
+  sub?: string;
+  email?: string;
+  iat?: number;
+  exp?: number;
+  [key: string]: unknown;
+}
+
+/**
  * Custom JWT service that handles token generation,
  * verification, and refresh token management
  */
@@ -90,7 +101,7 @@ export class CustomJwtService {
       return this.jwtService.verify<JwtPayload>(token, {
         secret: this.configService.get<string>('jwt.secret'),
       });
-    } catch (error) {
+    } catch {
       throw new Error('无效的访问令牌');
     }
   }
@@ -105,7 +116,7 @@ export class CustomJwtService {
       return this.jwtService.verify<JwtPayload>(token, {
         secret: this.configService.get<string>('jwt.refreshSecret'),
       });
-    } catch (error) {
+    } catch {
       throw new Error('无效的刷新令牌');
     }
   }
@@ -115,8 +126,15 @@ export class CustomJwtService {
    * @param token - JWT token to decode
    * @returns Decoded token payload
    */
-  decodeToken(token: string): any {
-    return this.jwtService.decode(token);
+  decodeToken(token: string): DecodedToken | null {
+    try {
+      // Type assertion is necessary here as jwtService.decode returns 'any'
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const decoded = this.jwtService.decode(token);
+      return decoded ? (decoded as DecodedToken) : null;
+    } catch {
+      return null;
+    }
   }
 
   /**

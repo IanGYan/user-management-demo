@@ -139,7 +139,6 @@ afterEach(() => {
 })
 
 // Suppress console.error and console.warn in tests
-/* eslint-disable no-console */
 const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
 
@@ -152,4 +151,3 @@ afterAll(() => {
   console.error = originalConsoleError;
   console.warn = originalConsoleWarn;
 });
-/* eslint-enable no-console */

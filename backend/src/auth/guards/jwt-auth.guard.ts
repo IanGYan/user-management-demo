@@ -9,12 +9,30 @@ import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 
 /**
+ * JWT错误信息接口
+ */
+interface JwtError {
+  name?: string;
+  message?: string;
+}
+
+/**
+ * JWT用户负载接口
+ */
+interface JwtPayload {
+  sub: number;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
+
+/**
  * JWT authentication guard that protects routes requiring authentication
  * Can be used as a global guard or applied to specific controllers/routes
  */
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') implements CanActivate {
-  constructor(private reflector: Reflector) {
+  constructor(private readonly reflector: Reflector) {
     super();
   }
 
@@ -45,9 +63,17 @@ export class JwtAuthGuard extends AuthGuard('jwt') implements CanActivate {
    * @param err - Authentication error
    * @param user - User object (if authentication succeeded)
    * @param info - Additional information about the authentication attempt
+   * @param context - Execution context
+   * @param status - Optional status
    * @returns User object if authentication succeeded
    */
-  handleRequest(err: any, user: any, info: any): any {
+  handleRequest<TUser = JwtPayload>(
+    err: Error | null,
+    user: JwtPayload | false,
+    info: JwtError | undefined,
+    _context?: ExecutionContext,
+    _status?: unknown,
+  ): TUser {
     // If there's an error or no user, throw an appropriate exception
     if (err || !user) {
       if (info?.name === 'TokenExpiredError') {
@@ -65,6 +91,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') implements CanActivate {
       throw new UnauthorizedException('身份验证失败，请登录后重试');
     }
 
-    return user;
+    return user as TUser;
   }
 }

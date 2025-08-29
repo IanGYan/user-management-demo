@@ -7,6 +7,18 @@ import { AuthStatus } from '@/lib/auth'
 import { useUIStore } from '@/stores/ui'
 
 /**
+ * 错误对象接口定义
+ */
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+  message?: string
+}
+
+/**
  * 认证操作 Hook
  * 提供登录、注册、登出等认证相关功能
  */
@@ -58,9 +70,10 @@ export const useAuth = () => {
       } else {
         throw new Error(response.data.message || '登录失败')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as ApiError
       const errorMessage =
-        error.response?.data?.message || error.message || '登录失败，请稍后重试'
+        apiError.response?.data?.message || apiError.message || '登录失败，请稍后重试'
 
       setError(errorMessage)
       addToast({
@@ -102,9 +115,10 @@ export const useAuth = () => {
       } else {
         throw new Error(response.data.message || '注册失败')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as ApiError
       const errorMessage =
-        error.response?.data?.message || error.message || '注册失败，请稍后重试'
+        apiError.response?.data?.message || apiError.message || '注册失败，请稍后重试'
 
       setError(errorMessage)
       addToast({
@@ -139,13 +153,15 @@ export const useAuth = () => {
       })
 
       return { success: true }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as ApiError
       // 即使 API 调用失败，也要清除本地状态
       clearAuth()
 
       // 记录登出 API 错误（但不在用户界面显示）
       if (process.env.NODE_ENV === 'development') {
-        console.error('Logout API error:', error)
+        // eslint-disable-next-line no-console
+        console.error('Logout API error:', apiError)
       }
 
       addToast({
@@ -186,9 +202,10 @@ export const useAuth = () => {
       } else {
         throw new Error(response.data.message || '邮箱验证失败')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as ApiError
       const errorMessage =
-        error.response?.data?.message || error.message || '邮箱验证失败'
+        apiError.response?.data?.message || apiError.message || '邮箱验证失败'
 
       setError(errorMessage)
       addToast({
@@ -232,9 +249,10 @@ export const useAuth = () => {
       } else {
         throw new Error(response.data.message || '发送验证邮件失败')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as ApiError
       const errorMessage =
-        error.response?.data?.message || error.message || '发送验证邮件失败'
+        apiError.response?.data?.message || apiError.message || '发送验证邮件失败'
 
       setError(errorMessage)
       addToast({
@@ -273,9 +291,10 @@ export const useAuth = () => {
       } else {
         throw new Error(response.data.message || '发送重置链接失败')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as ApiError
       const errorMessage =
-        error.response?.data?.message || error.message || '发送重置链接失败'
+        apiError.response?.data?.message || apiError.message || '发送重置链接失败'
 
       setError(errorMessage)
       addToast({
@@ -319,9 +338,10 @@ export const useAuth = () => {
       } else {
         throw new Error(response.data.message || '密码重置失败')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as ApiError
       const errorMessage =
-        error.response?.data?.message || error.message || '密码重置失败'
+        apiError.response?.data?.message || apiError.message || '密码重置失败'
 
       setError(errorMessage)
       addToast({

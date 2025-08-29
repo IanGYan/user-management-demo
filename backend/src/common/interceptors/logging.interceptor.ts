@@ -11,6 +11,26 @@ import { Request, Response } from 'express';
 import { throwError } from 'rxjs';
 
 /**
+ * Error interface for type safety
+ */
+interface ErrorWithStack {
+  message?: string;
+  stack?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Type guard to check if object has error properties
+ */
+function isErrorWithStack(error: unknown): error is ErrorWithStack {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    ('message' in error || 'stack' in error)
+  );
+}
+
+/**
  * Logging interceptor to track request/response details
  * for monitoring and debugging purposes
  */
@@ -18,7 +38,7 @@ import { throwError } from 'rxjs';
 export class LoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger(LoggingInterceptor.name);
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const ctx = context.switchToHttp();
     const request = ctx.getRequest<Request>();
     const response = ctx.getResponse<Response>();
@@ -48,7 +68,7 @@ export class LoggingInterceptor implements NestInterceptor {
           responseLog,
         );
       }),
-      catchError((error) => {
+      catchError((error: unknown) => {
         const responseTime = Date.now() - now;
         const errorLog = this.buildErrorLog(
           request,
@@ -57,9 +77,10 @@ export class LoggingInterceptor implements NestInterceptor {
           error,
         );
 
+        const errorStack = isErrorWithStack(error) ? error.stack : undefined;
         this.logger.error(
           `Request Error: ${request.method} ${request.url} - ${responseTime}ms`,
-          error.stack,
+          errorStack,
           errorLog,
         );
 
@@ -78,7 +99,10 @@ export class LoggingInterceptor implements NestInterceptor {
   /**
    * Builds log data for incoming requests
    */
-  private buildRequestLog(request: Request, requestId: string) {
+  private buildRequestLog(
+    request: Request,
+    requestId: string,
+  ): Record<string, string> {
     return {
       requestId,
       method: request.method,
@@ -98,7 +122,7 @@ export class LoggingInterceptor implements NestInterceptor {
     response: Response,
     requestId: string,
     responseTime: number,
-  ) {
+  ): Record<string, string | number> {
     return {
       requestId,
       method: request.method,
@@ -116,14 +140,19 @@ export class LoggingInterceptor implements NestInterceptor {
     request: Request,
     requestId: string,
     responseTime: number,
-    error: any,
-  ) {
+    error: unknown,
+  ): Record<string, string> {
+    const errorMessage =
+      isErrorWithStack(error) && error.message
+        ? error.message
+        : 'Unknown error';
+
     return {
       requestId,
       method: request.method,
       url: request.url,
       responseTime: `${responseTime}ms`,
-      error: error.message || 'Unknown error',
+      error: errorMessage,
       ip: request.ip || 'Unknown',
     };
   }

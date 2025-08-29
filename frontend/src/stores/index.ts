@@ -26,6 +26,7 @@ export const resetAllStores = () => {
   // 这里可以添加重置逻辑，如果 stores 提供了重置方法
   if (typeof window !== 'undefined') {
     if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
       console.warn('resetAllStores: 清除本地存储和重置状态')
     }
     localStorage.clear()
@@ -43,7 +44,7 @@ export const initializeStores = () => {
 
   // 恢复主题设置
   if (typeof window !== 'undefined') {
-    const savedTheme = localStorage.getItem('theme') as any
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | 'system' | null
     if (savedTheme) {
       // 这里需要导入 useUIStore 然后调用 setTheme
       // 但是由于这是在模块级别，我们不能直接使用 hooks

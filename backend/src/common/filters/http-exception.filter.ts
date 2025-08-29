@@ -10,6 +10,26 @@ import { Request, Response } from 'express';
 import { ApiErrorResponse } from '../types/api-response.type';
 
 /**
+ * HTTP异常响应对象接口
+ */
+interface HttpExceptionResponse {
+  message?: string | string[];
+  error?: string;
+  statusCode?: number;
+}
+
+/**
+ * 类型保护：检查是否为HTTP异常响应对象
+ */
+function isHttpExceptionResponse(obj: unknown): obj is HttpExceptionResponse {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    ('message' in obj || 'error' in obj || 'statusCode' in obj)
+  );
+}
+
+/**
  * Global exception filter to handle all HTTP exceptions
  * and format error responses consistently
  */
@@ -58,12 +78,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
       if (typeof response === 'string') {
         return response;
       }
-      if (typeof response === 'object' && response !== null) {
-        const responseObj = response as any;
-        if (responseObj.message) {
-          return Array.isArray(responseObj.message)
-            ? responseObj.message.join(', ')
-            : responseObj.message;
+      if (isHttpExceptionResponse(response)) {
+        if (response.message) {
+          return Array.isArray(response.message)
+            ? response.message.join(', ')
+            : response.message;
         }
       }
     }

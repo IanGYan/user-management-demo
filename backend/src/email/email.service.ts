@@ -11,6 +11,7 @@ export class EmailService {
   async sendVerificationEmail(email: string, token: string): Promise<void> {
     // TODO: Implement email sending logic
     console.log(`Sending verification email to ${email} with token ${token}`);
+    return Promise.resolve();
   }
 
   /**
@@ -19,5 +20,6 @@ export class EmailService {
   async sendPasswordResetEmail(email: string, token: string): Promise<void> {
     // TODO: Implement password reset email logic
     console.log(`Sending password reset email to ${email} with token ${token}`);
+    return Promise.resolve();
   }
 }
